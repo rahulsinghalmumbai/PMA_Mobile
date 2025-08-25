@@ -47,7 +47,7 @@
 
           
             <Label x:Name="AppTitle"
-                   Text="ReachConnect"
+                   Text="PMA"
                    FontSize="36"
                    FontAttributes="Bold"
                    TextColor="White"
