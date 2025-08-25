@@ -729,7 +729,8 @@ public partial class homePage : ContentPage
 
             if (encodedMessage.Length > 400)
             {
-                message = $"*{contact.Name}*\n📱 {phoneNumber}\n\n📲 BT Address Book";
+                //message = $"*{contact.Name}*\n📱 {phoneNumber}\n\n📲 BT Address Book";
+                message = "";
                 encodedMessage = System.Web.HttpUtility.UrlEncode(message);
             }
 
@@ -807,39 +808,41 @@ public partial class homePage : ContentPage
     }
     private string GenerateWhatsAppMessage(MstMember contact)
     {
-        var message = $"*Contact Details*\n\n";
-        message += $"📝 *Name:* {contact.Name}\n";
-        message += $"📱 *Mobile:* {contact.Mobile1}\n";
+        var message = " ";
+        //var message = $"*Contact Details*\n\n";
 
-        if (!string.IsNullOrEmpty(contact.Mobile2))
-            message += $"📞 *Alt Mobile:* {contact.Mobile2}\n";
+        //message += $"📝 *Name:* {contact.Name}\n";
+        //message += $"📱 *Mobile:* {contact.Mobile1}\n";
 
-        if (!string.IsNullOrEmpty(contact.Company))
-            message += $"🏢 *Company:* {contact.Company}\n";
+        //if (!string.IsNullOrEmpty(contact.Mobile2))
+        //    message += $"📞 *Alt Mobile:* {contact.Mobile2}\n";
 
-        if (!string.IsNullOrEmpty(contact.City))
-            message += $"📍 *City:* {contact.City}\n";
+        //if (!string.IsNullOrEmpty(contact.Company))
+        //    message += $"🏢 *Company:* {contact.Company}\n";
 
-        if (!string.IsNullOrEmpty(contact.Name))
-            message += $"🏷️ *Category:* {contact.Name}\n";
+        //if (!string.IsNullOrEmpty(contact.City))
+        //    message += $"📍 *City:* {contact.City}\n";
 
-        message += "\n📲 *Shared from BT Address Book*";
+        //if (!string.IsNullOrEmpty(contact.Name))
+        //    message += $"🏷️ *Category:* {contact.Name}\n";
+
+        //message += "\n📲 *Shared from BT Address Book*";
 
         return message;
     }
     private string GenerateShortWhatsAppMessage(MstMember contact)
     {
-        var message = $"*Contact Details*\n\n";
-        message += $"📝 *Name:* {contact.Name}\n";
-        message += $"📱 *Mobile:* {contact.Mobile1}\n";
+        var message = " ";
+        //message += $"📝 *Name:* {contact.Name}\n";
+        //message += $"📱 *Mobile:* {contact.Mobile1}\n";
 
-        if (!string.IsNullOrEmpty(contact.Company))
-            message += $"🏢 *Company:* {contact.Company}\n";
+        //if (!string.IsNullOrEmpty(contact.Company))
+        //    message += $"🏢 *Company:* {contact.Company}\n";
 
-        if (!string.IsNullOrEmpty(contact.City))
-            message += $"📍 *City:* {contact.City}\n";
+        //if (!string.IsNullOrEmpty(contact.City))
+        //    message += $"📍 *City:* {contact.City}\n";
 
-        message += "\n📲 BT Address Book";
+        //message += "\n📲 BT Address Book";
 
         return message;
     }
@@ -854,7 +857,8 @@ public partial class homePage : ContentPage
             // Keep URI length under control
             if (encodedMessage.Length > 400)
             {
-                message = $"*{contact.Name}*\n📱 {contact.Mobile1}\n\n📲 BT Address Book";
+               // message = $"*{contact.Name}*\n📱 {contact.Mobile1}\n\n📲 BT Address Book";
+                message = "";
                 encodedMessage = System.Web.HttpUtility.UrlEncode(message);
             }
 
@@ -1623,7 +1627,8 @@ public partial class homePage : ContentPage
 
             var message = new EmailMessage
             {
-                Subject = $"Contact: {contact.Name}",
+               // Subject = $"Contact: {contact.Name}",
+                Subject = "",
                 Body = GenerateEmailBody(contact),
                 // BodyFormat = EmailBodyFormat.PlainText, 
                 To = new List<string> { contact.Email1 }
