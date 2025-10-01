@@ -1,4 +1,4 @@
-using BVGF_Mobile;
+﻿using BVGF_Mobile;
 using System;
 using System.Threading.Tasks;
 

@@ -19,10 +19,10 @@
                 SemanticProperties.HeadingLevel="Level1" />
 
             <Label
-                Text="Welcome to ReachConnect"
+                Text="Welcome to PMA"
                 Style="{StaticResource SubHeadline}"
                 SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to ReachConnect" />
+                SemanticProperties.Description="Welcome to PMA" />
 
            
         </VerticalStackLayout>
