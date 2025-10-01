@@ -51,14 +51,14 @@ namespace BVGF.Pages
 
                 LoginButton.Text = "Checking Credential...";
                 await Task.Delay(100); 
-                var verificationResponse = await _simService.VerifyPhoneNumberAsync(PasswordEntry.Text.Trim());
-                if (verificationResponse.Result != VerificationResult.Success)
-                {
-                    await DisplayAlert("Verification Failed",
-                        verificationResponse.Message,
-                        "OK");
-                    return;
-                }
+                //var verificationResponse = await _simService.VerifyPhoneNumberAsync(PasswordEntry.Text.Trim());
+                //if (verificationResponse.Result != VerificationResult.Success)
+                //{
+                //    await DisplayAlert("Verification Failed",
+                //        verificationResponse.Message,
+                //        "OK");
+                //    return;
+                //}
 
                 LoginButton.Text = "Logging in...";
                 await Task.Delay(100);
@@ -75,7 +75,7 @@ namespace BVGF.Pages
                     //await Navigation.PushAsync(new homePage());
                     var speechToText = Handler.MauiContext.Services.GetService<ISpeechToText>();
                     await Navigation.PushAsync(new homePage(speechToText));
-
+                    Navigation.RemovePage(this);
                 }
                 else
                 {
