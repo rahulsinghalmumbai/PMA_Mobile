@@ -35,7 +35,7 @@
                 <Grid>
                   
                     <Image x:Name="SplashImage"
-                           Source="splash.jpeg"
+                           Source="logo.jpeg"
                            Aspect="AspectFill" 
                            Opacity="0.9"/>
 

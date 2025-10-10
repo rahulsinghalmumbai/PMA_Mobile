@@ -76,7 +76,7 @@
                         Clicked="OnShowMyNumbersClicked"/>-->
 
                 <!-- Remember Me & Forgot Password -->
-                <StackLayout Orientation="Horizontal" Margin="5,0">
+                <!--<StackLayout Orientation="Horizontal" Margin="5,0">
                     <StackLayout Orientation="Horizontal" HorizontalOptions="Start">
                         <CheckBox x:Name="RememberMeCheckBox" Color="#4A90E2"/>
                         <Label Text="Remember me" 
@@ -93,7 +93,7 @@
                             <TapGestureRecognizer Tapped="OnForgotPasswordTapped"/>
                         </Label.GestureRecognizers>
                     </Label>
-                </StackLayout>
+                </StackLayout>-->
 
                 <!-- Login Button -->
                 <Button x:Name="LoginButton" 
@@ -124,7 +124,7 @@
 
             </StackLayout>
 
-            <!-- Sign Up Section -->
+            <!-- Sign Up Section --><!--
             <StackLayout Grid.Row="2" VerticalOptions="End" HorizontalOptions="Center">
                 <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
                     <Label Text="Don't have an account? " 
@@ -142,14 +142,14 @@
                     </Label>
                 </StackLayout>
 
-                <!-- Terms and Privacy -->
+                --><!-- Terms and Privacy --><!--
                 <Label Text="By continuing, you agree to our Terms of Service and Privacy Policy" 
                        FontSize="12" 
                        TextColor="#999999" 
                        HorizontalOptions="Center" 
                        HorizontalTextAlignment="Center" 
                        Margin="0,10,0,0"/>
-            </StackLayout>
+            </StackLayout>-->
 
         </Grid>
     </ScrollView>
