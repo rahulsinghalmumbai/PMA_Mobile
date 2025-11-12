@@ -15,6 +15,11 @@ public partial class homePage : ContentPage
     private ObservableCollection<mstCategary> _categories = new ObservableCollection<mstCategary>();
     private Object currentEditingContact;
     private bool isListening = false;
+    private int _adInsertInterval = 3;
+    private List<AdsEntity> _ads;
+    private ObservableCollection<ListItem> _listItems;
+    public int TotalRecords => _members?.Count ?? 0;
+    
 
     private readonly ISpeechToText _speechToText;
     public ObservableCollection<MstMember> Members => _members;
@@ -23,15 +28,78 @@ public partial class homePage : ContentPage
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         BindingContext = this;
-        memberCollectionView.ItemsSource = _members;
+        _listItems = new ObservableCollection<ListItem>();
+        memberCollectionView.ItemsSource = _listItems;
         _apiService = new ApiService();
         LoadCategoriesAsync();
         RecordCountLabel.Text = "Record : 0";
         _members.Clear();
         _speechToText = speechToText;
+        _ads = new List<AdsEntity>();
+        LoadAdsAsync();
     }
 
+    private async Task LoadAdsAsync()
+    {
+        try
+        {
+            _ads = await _apiService.GetAdsAsync();
+            Console.WriteLine($"Loaded {_ads.Count} ads");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading ads: {ex.Message}");
+            _ads = new List<AdsEntity>();
+        }
+    }
 
+    private void MergeAdsWithMembers()
+    {
+        _listItems.Clear();
+
+        if (_members.Count == 0)
+        {
+            return;
+        }
+
+        if (_ads == null || _ads.Count == 0)
+        {
+            foreach (var member in _members)
+            {
+                _listItems.Add(new MemberItem(member));
+            }
+            return;
+        }
+
+        if (_members.Count <= 3)
+        {
+            foreach (var member in _members)
+            {
+                _listItems.Add(new MemberItem(member));
+            }
+
+            _listItems.Add(new AdItem(_ads[0]));
+            return;
+        }
+
+        int memberIndex = 0;
+        int adIndex = 0;
+
+        while (memberIndex < _members.Count)
+        {
+            for (int i = 0; i < _adInsertInterval && memberIndex < _members.Count; i++)
+            {
+                _listItems.Add(new MemberItem(_members[memberIndex]));
+                memberIndex++;
+            }
+
+            if (memberIndex < _members.Count && _ads.Count > 0)
+            {
+                _listItems.Add(new AdItem(_ads[adIndex % _ads.Count]));
+                adIndex++;
+            }
+        }
+    }
 
     private async void OnCompanyMicClicked(object sender, EventArgs e)
     {
@@ -84,8 +152,7 @@ public partial class homePage : ContentPage
             }
 
             await ShowSpeechUI(fieldName, micButton);
-
-            await Task.Delay(500); 
+            await Task.Delay(500);
 
             var options = new SpeechToTextOptions
             {
@@ -135,7 +202,19 @@ public partial class homePage : ContentPage
 
                             UpdateSpeechStatus($"✅ Got: \"{finalText.Substring(0, Math.Min(finalText.Length, 30))}\"");
 
-                            // Hide after 2 seconds
+                          
+                            Device.StartTimer(TimeSpan.FromSeconds(2), () =>
+                            {
+                                try
+                                {
+                                    OnSearchClicked(null, null);  
+                                }
+                                catch { }
+
+                                return false;
+                            });
+
+                            // Hide UI after 2 sec
                             Device.StartTimer(TimeSpan.FromSeconds(2), () =>
                             {
                                 HideSpeechUI();
@@ -195,6 +274,150 @@ public partial class homePage : ContentPage
         }
     }
 
+
+
+    //private async Task StartSpeechToText(Entry targetEntry, Button micButton, string fieldName, bool isMobile = false)
+    //{
+    //    try
+    //    {
+    //        if (isListening)
+    //        {
+    //            await DisplayAlert("Info", "Already listening. Please wait...", "OK");
+    //            return;
+    //        }
+
+    //        if (targetEntry == null)
+    //        {
+    //            await DisplayAlert("Error", "Entry field is null!", "OK");
+    //            return;
+    //        }
+
+    //        if (_speechToText == null)
+    //        {
+    //            await DisplayAlert("Error", "Speech service not initialized!", "OK");
+    //            return;
+    //        }
+
+    //        var granted = await _speechToText.RequestPermissions(CancellationToken.None);
+    //        if (!granted)
+    //        {
+    //            await DisplayAlert("Permission Error", "Microphone permission denied!", "OK");
+    //            ResetMicButton(micButton);
+    //            return;
+    //        }
+
+    //        await ShowSpeechUI(fieldName, micButton);
+
+    //        await Task.Delay(500);
+
+    //        var options = new SpeechToTextOptions
+    //        {
+    //            Culture = CultureInfo.GetCultureInfo("en-US"),
+    //            ShouldReportPartialResults = true
+    //        };
+
+    //        EventHandler<SpeechToTextRecognitionResultUpdatedEventArgs> updatedHandler = null;
+    //        EventHandler<SpeechToTextRecognitionResultCompletedEventArgs> completedHandler = null;
+
+    //        updatedHandler = (s, e) =>
+    //        {
+    //            MainThread.BeginInvokeOnMainThread(() =>
+    //            {
+    //                try
+    //                {
+    //                    var text = e.RecognitionResult;
+    //                    if (!string.IsNullOrWhiteSpace(text))
+    //                    {
+    //                        text = text.Trim();
+    //                        if (isMobile)
+    //                            text = CleanMobileNumber(text);
+
+    //                        targetEntry.Text = text;
+
+    //                        UpdateSpeechStatus($"Listening... \"{text.Substring(0, Math.Min(text.Length, 20))}\"");
+    //                    }
+    //                }
+    //                catch { }
+    //            });
+    //        };
+
+    //        completedHandler = (s, e) =>
+    //        {
+    //            MainThread.BeginInvokeOnMainThread(() =>
+    //            {
+    //                try
+    //                {
+    //                    var finalText = e.RecognitionResult?.Text;
+    //                    if (!string.IsNullOrWhiteSpace(finalText))
+    //                    {
+    //                        finalText = finalText.Trim();
+    //                        if (isMobile)
+    //                            finalText = CleanMobileNumber(finalText);
+
+    //                        targetEntry.Text = finalText;
+
+    //                        UpdateSpeechStatus($"✅ Got: \"{finalText.Substring(0, Math.Min(finalText.Length, 30))}\"");
+
+    //                        // Hide after 2 seconds
+    //                        Device.StartTimer(TimeSpan.FromSeconds(2), () =>
+    //                        {
+    //                            HideSpeechUI();
+    //                            return false;
+    //                        });
+    //                    }
+    //                    else
+    //                    {
+    //                        UpdateSpeechStatus("❌ No speech detected");
+    //                        Device.StartTimer(TimeSpan.FromSeconds(2), () =>
+    //                        {
+    //                            HideSpeechUI();
+    //                            return false;
+    //                        });
+    //                    }
+    //                }
+    //                catch { }
+    //            });
+
+    //            _speechToText.RecognitionResultUpdated -= updatedHandler;
+    //            _speechToText.RecognitionResultCompleted -= completedHandler;
+    //        };
+
+    //        _speechToText.RecognitionResultUpdated += updatedHandler;
+    //        _speechToText.RecognitionResultCompleted += completedHandler;
+
+    //        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+    //        await _speechToText.StartListenAsync(options, cts.Token);
+    //    }
+    //    catch (TaskCanceledException)
+    //    {
+    //        MainThread.BeginInvokeOnMainThread(() =>
+    //        {
+    //            UpdateSpeechStatus("⏱️ Speech timeout");
+    //            Device.StartTimer(TimeSpan.FromSeconds(2), () =>
+    //            {
+    //                HideSpeechUI();
+    //                return false;
+    //            });
+    //        });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        MainThread.BeginInvokeOnMainThread(() =>
+    //        {
+    //            UpdateSpeechStatus($"❌ Error: {ex.Message}");
+    //            Device.StartTimer(TimeSpan.FromSeconds(3), () =>
+    //            {
+    //                HideSpeechUI();
+    //                return false;
+    //            });
+    //        });
+    //    }
+    //    finally
+    //    {
+    //        ResetMicButton(micButton);
+    //    }
+    //}
+
     private async Task ShowSpeechUI(string fieldName, Button micButton)
     {
         await MainThread.InvokeOnMainThreadAsync(() =>
@@ -234,7 +457,7 @@ public partial class homePage : ContentPage
             StopPulsingAnimation();
             await SpeechStatusFrame.FadeTo(0, 300);
             SpeechStatusFrame.IsVisible = false;
-            SpeechStatusFrame.Opacity = 1; 
+            SpeechStatusFrame.Opacity = 1;
         });
     }
 
@@ -249,7 +472,7 @@ public partial class homePage : ContentPage
             {
                 if (SpeechStatusIcon.Text == "⚪")
                 {
-                   SpeechStatusIcon.Text = "⚪";
+                    SpeechStatusIcon.Text = "⚪";
                     await SpeechStatusIcon.ScaleTo(1.2, 250);
                 }
                 else
@@ -319,6 +542,197 @@ public partial class homePage : ContentPage
         SearchButton.Text = show ? "Searching..." : "Search";
     }
 
+
+    private async void OnDownloadMemberTapped(object sender, EventArgs e)
+    {
+        try
+        {
+            var frame = sender as Frame;
+            if (frame?.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tapGesture)
+            {
+                // Check if it's your member object (adjust according to your actual data type)
+                if (tapGesture.CommandParameter is object memberData)
+                {
+                    // Try to get member details based on your actual data structure
+                    MstMember member = null;
+
+                    // Option 1: If your data context directly contains MstMember
+                    if (memberData is MstMember directMember)
+                    {
+                        member = directMember;
+                    }
+                    // Option 2: If your data context has a Member property
+                    else if (memberData.GetType().GetProperty("Member")?.GetValue(memberData) is MstMember memberProperty)
+                    {
+                        member = memberProperty;
+                    }
+                    // Option 3: If your data context has a IsAd property (like in your original code)
+                    else if (memberData.GetType().GetProperty("IsAd")?.GetValue(memberData) is bool isAd && !isAd)
+                    {
+                        var memberProp = memberData.GetType().GetProperty("Member");
+                        if (memberProp != null)
+                        {
+                            member = memberProp.GetValue(memberData) as MstMember;
+                        }
+                    }
+
+                    if (member != null)
+                    {
+                        await DownloadSingleMemberAsPdf(member);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", "Download failed: " + ex.Message, "OK");
+        }
+    }
+    private async void OnDownloadAllMembersClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (_members.Count == 0)
+            {
+                await DisplayAlert("Info", "No members to download.", "OK");
+                return;
+            }
+
+            ShowLoading(true, "Generating PDF for all members...");
+
+            var pdfDataList = new List<MemberPdfData>();
+
+            // Convert your members to PDF data
+            foreach (var item in _members)
+            {
+                // Check if it's a member (not ad) and get the member data
+                MstMember member = null;
+
+                if (item is MstMember directMember)
+                {
+                    member = directMember;
+                }
+                else if (item.GetType().GetProperty("Member")?.GetValue(item) is MstMember memberProperty)
+                {
+                    member = memberProperty;
+                }
+                else if (item.GetType().GetProperty("IsAd")?.GetValue(item) is bool isAd && !isAd)
+                {
+                    var memberProp = item.GetType().GetProperty("Member");
+                    if (memberProp != null)
+                    {
+                        member = memberProp.GetValue(item) as MstMember;
+                    }
+                }
+
+                if (member != null)
+                {
+                    pdfDataList.Add(new MemberPdfData
+                    {
+                        Name = member.Name,
+                        Company = member.Company,
+                        Category = member.CategoryName,
+                        City = member.City,
+                        Mobile1 = member.Mobile1
+                    });
+                }
+            }
+
+            var pdf = new BVGF.Connection.PDF();
+            var pdfBytes = pdf.GenerateAllMembersPdf(pdfDataList);
+
+            var tempFilePath = Path.Combine(FileSystem.CacheDirectory, $"All_Members_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+            File.WriteAllBytes(tempFilePath, pdfBytes);
+
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "Download All Members",
+                File = new ShareFile(tempFilePath)
+            });
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", "PDF generation failed: " + ex.Message, "OK");
+        }
+        finally
+        {
+            ShowLoading(false);
+        }
+    }
+    private async Task DownloadSingleMemberAsPdf(MstMember member)
+    {
+        try
+        {
+            ShowLoading(true, "Generating PDF...");
+
+            // Add small delay to show loading
+            await Task.Delay(500);
+
+            var pdf = new BVGF.Connection.PDF();
+            var pdfBytes = pdf.GenerateMemberPdf(
+                name: member.Name ?? "",
+                company: member.Company ?? "",
+                category: member.CategoryName ?? "",
+                city: member.City ?? "",
+                mobile1: member.Mobile1 ?? "",
+                mobile2: member.Mobile2,
+                mobile3: member.Mobile3,
+                telephone: member.Telephone,
+                email1: member.Email1,
+                email2: member.Email2,
+                email3: member.Email3,
+                address: member.CityAddress
+            );
+
+            if (pdfBytes == null || pdfBytes.Length == 0)
+            {
+                await DisplayAlert("Error", "Failed to generate PDF content", "OK");
+                return;
+            }
+
+            // Create safe filename
+            var safeName = RemoveInvalidChars(member.Name ?? "Member");
+            var tempFilePath = Path.Combine(FileSystem.CacheDirectory, $"{safeName}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+
+            File.WriteAllBytes(tempFilePath, pdfBytes);
+
+            // Verify file was created
+            if (!File.Exists(tempFilePath))
+            {
+                await DisplayAlert("Error", "Failed to create PDF file", "OK");
+                return;
+            }
+
+            // Show share dialog
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = $"Save {member.Name} Contact",
+                File = new ShareFile(tempFilePath)
+            });
+
+            await DisplayAlert("Success", "PDF generated successfully! You can now save it to your device.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"PDF generation failed: {ex.Message}", "OK");
+            System.Diagnostics.Debug.WriteLine($"PDF Error: {ex}");
+        }
+        finally
+        {
+            ShowLoading(false);
+        }
+    }
+
+    // Helper method to remove invalid file name characters
+    private string RemoveInvalidChars(string filename)
+    {
+        if (string.IsNullOrEmpty(filename))
+            return "Member";
+
+        return string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
+    }
+
+  
     private async void OnHistoryClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new BVGF.Pages.history());
@@ -339,7 +753,6 @@ public partial class homePage : ContentPage
             var city = CityEntry.Text?.Trim();
             var mobile = MobileEntry.Text?.Trim();
 
-            // Add small delay for better UX (optional)
             await Task.Delay(300);
 
             var members = await _apiService.GetMembersAsync(company, categoryId, name, city, mobile);
@@ -348,9 +761,10 @@ public partial class homePage : ContentPage
             foreach (var m in members)
                 _members.Add(m);
 
+            MergeAdsWithMembers();
+
             RecordCountLabel.Text = $"Record : {_members.Count}";
 
-            // Show message if no results found
             if (_members.Count == 0)
             {
                 await DisplayAlert("Info", "No records found matching your search criteria.", "OK");
@@ -380,6 +794,7 @@ public partial class homePage : ContentPage
             MobileEntry.Text = "";
 
             _members.Clear();
+            _listItems.Clear();
             RecordCountLabel.Text = "Record : 0";
 
 
@@ -408,19 +823,37 @@ public partial class homePage : ContentPage
     private async void OnContactTapped(object sender, EventArgs e)
     {
         var grid = sender as Grid;
-        var contact = grid?.BindingContext as MstMember;
 
+        // Check if BindingContext is MemberItem
+        if (grid?.BindingContext is MemberItem memberItem)
+        {
+            var contact = memberItem.Member;
 
-        if (contact == null)
-            return;
+            if (contact == null)
+                return;
 
-        memberCollectionView.IsVisible = false;
-        SearchSection.IsVisible = false;
-        ContactDetailView.IsVisible = true;
-        BackButton.IsVisible = true;
-        ContactDetailView.BindingContext = contact;
-        await CheckAndShowEditButtonAsync(contact.Mobile1);
-        await CheckAndShowPendingApprovalMessage(contact);
+            memberCollectionView.IsVisible = false;
+            SearchSection.IsVisible = false;
+            ContactDetailView.IsVisible = true;
+            BackButton.IsVisible = true;
+            ContactDetailView.BindingContext = contact;
+            await CheckAndShowEditButtonAsync(contact.Mobile1);
+            await CheckAndShowPendingApprovalMessage(contact);
+        }
+        else if (grid?.BindingContext is MstMember contact)
+        {
+            // Fallback for direct MstMember binding
+            if (contact == null)
+                return;
+
+            memberCollectionView.IsVisible = false;
+            SearchSection.IsVisible = false;
+            ContactDetailView.IsVisible = true;
+            BackButton.IsVisible = true;
+            ContactDetailView.BindingContext = contact;
+            await CheckAndShowEditButtonAsync(contact.Mobile1);
+            await CheckAndShowPendingApprovalMessage(contact);
+        }
     }
     private async Task CheckAndShowPendingApprovalMessage(MstMember contact)
     {
@@ -449,7 +882,7 @@ public partial class homePage : ContentPage
 
     private void OnBackClicked(object sender, EventArgs e)
     {
-        // List view ?? show ????
+        // List view दिखाओ
         ContactDetailView.IsVisible = false;
         BackButton.IsVisible = false;
         memberCollectionView.IsVisible = true;
@@ -708,11 +1141,11 @@ public partial class homePage : ContentPage
                 }
                 catch
                 {
-                    continue; 
+                    continue;
                 }
             }
 
-            
+
             return false;
         }
         catch
@@ -761,14 +1194,14 @@ public partial class homePage : ContentPage
                     var canOpen = await Launcher.CanOpenAsync(scheme);
                     if (canOpen)
                     {
-                        await Task.Delay(100); 
+                        await Task.Delay(100);
                         await Launcher.OpenAsync(scheme);
-                        return true; 
+                        return true;
                     }
                 }
                 catch
                 {
-                    continue; 
+                    continue;
                 }
             }
 
@@ -857,7 +1290,7 @@ public partial class homePage : ContentPage
             // Keep URI length under control
             if (encodedMessage.Length > 400)
             {
-               // message = $"*{contact.Name}*\n📱 {contact.Mobile1}\n\n📲 BT Address Book";
+                // message = $"*{contact.Name}*\n📱 {contact.Mobile1}\n\n📲 BT Address Book";
                 message = "";
                 encodedMessage = System.Web.HttpUtility.UrlEncode(message);
             }
@@ -1627,7 +2060,7 @@ public partial class homePage : ContentPage
 
             var message = new EmailMessage
             {
-               // Subject = $"Contact: {contact.Name}",
+                // Subject = $"Contact: {contact.Name}",
                 Subject = "",
                 Body = GenerateEmailBody(contact),
                 // BodyFormat = EmailBodyFormat.PlainText, 
@@ -1893,5 +2326,34 @@ public partial class homePage : ContentPage
         }
 
         return base.OnBackButtonPressed();
+    }
+
+    private async void OnAdTapped(object sender, EventArgs e)
+    {
+        try
+        {
+            var frame = sender as Frame;
+
+            if (frame?.BindingContext is AdItem adItem)
+            {
+                var ad = adItem.Ad;
+                if (ad != null && !string.IsNullOrWhiteSpace(ad.RedirectUrl))
+                {
+                    await Launcher.OpenAsync(new Uri(ad.RedirectUrl));
+                }
+            }
+            else if (frame?.BindingContext is AdsEntity ad)
+            {
+                if (ad != null && !string.IsNullOrWhiteSpace(ad.RedirectUrl))
+                {
+                    await Launcher.OpenAsync(new Uri(ad.RedirectUrl));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error opening ad URL: {ex.Message}");
+            await DisplayAlert("Error", "Could not open advertisement link.", "OK");
+        }
     }
 }

@@ -100,6 +100,33 @@ namespace BVGF.Connection
             }
         }
 
+        public async Task<List<AdsEntity>> GetAdsAsync()
+        {
+            var url = "http://195.250.31.98:8070/api/Ads/GetAdsData";
+
+            try
+            {
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                    return new List<AdsEntity>();
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<AdsResponse>(responseBody, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return result?.Data ?? new List<AdsEntity>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("API error fetching ads: " + ex.Message);
+                return new List<AdsEntity>();
+            }
+        }
+
+       
+
         public async Task<List<mstCategary>> GetCategoriesAsync()
         {
             try

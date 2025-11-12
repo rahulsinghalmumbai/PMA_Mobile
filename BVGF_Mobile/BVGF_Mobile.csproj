@@ -75,10 +75,18 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
+		<!--<PackageReference Include="IronPdf" Version="2025.10.8" />-->
+		<PackageReference Include="itext7" Version="9.3.0" />
+		<PackageReference Include="itext7.bouncy-castle-adapter" Version="9.3.0" />
 		<PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.45.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
 		<PackageReference Include="Microsoft.Maui.Essentials" Version="9.0.90" />
+		<!--<PackageReference Include="QuestPDF" Version="2025.7.4" />
+		<PackageReference Include="Select.HtmlToPdf" Version="25.2.0" />-->
+		<PackageReference Include="SkiaSharp" Version="3.119.1" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Core" Version="3.119.1" />
 		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.8" />
 	</ItemGroup>
 
@@ -104,9 +112,9 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 
 		<!-- Versions -->
-		<ApplicationVersion>7</ApplicationVersion>
-		<VersionCode>7</VersionCode>
-		<ApplicationDisplayVersion>1.0.7</ApplicationDisplayVersion>
+		<ApplicationVersion>10</ApplicationVersion>
+	<VersionCode>10</VersionCode>
+		<ApplicationDisplayVersion>1.1.0</ApplicationDisplayVersion>
 
 		<AndroidKeyStore>true</AndroidKeyStore>
 		<AndroidSigningKeyStore>key.keystore</AndroidSigningKeyStore>

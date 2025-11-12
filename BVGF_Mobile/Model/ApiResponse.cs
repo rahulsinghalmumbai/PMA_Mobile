@@ -21,4 +21,10 @@ namespace BVGF.Model
     {
         public List<mstCategary> categaries { get; set; }
     }
+    public class AdsResponse
+    {
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public List<AdsEntity> Data { get; set; }
+    }
 }
