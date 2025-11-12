@@ -3,6 +3,7 @@ using BVGF.Pages;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Media;
 using Microsoft.Extensions.Logging;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 
 namespace BVGF_Mobile
 {
@@ -12,8 +13,10 @@ namespace BVGF_Mobile
         {
             var builder = MauiApp.CreateBuilder();
 
+
             builder
                 .UseMauiApp<App>()
+                  .UseSkiaSharp()
                 .UseMauiCommunityToolkit() 
                 .ConfigureFonts(fonts =>
                 {
